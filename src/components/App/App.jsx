@@ -1,5 +1,4 @@
-import React from 'react';
-import { Component } from 'react';
+import React, { useState } from 'react';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 import { Section, Phonebook, Contacts, Filter } from 'components';
@@ -9,24 +8,23 @@ import { Container } from './App.styled';
 // Generator ids
 import { nanoid } from 'nanoid';
 
-class App extends Component {
+export const App = () => {
   // Global states
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
+
+  const [contacts, setContact] = useState([
+    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  ]);
+
+  const [filter, setFilter] = useState('');
 
   // Add contacts
-  handleAddContact = (e, name, number) => {
+  const handleAddContact = (e, name, number) => {
     e.preventDefault();
     const currentName = name;
     const currentNumber = number;
-    const contacts = this.state.contacts;
 
     // Check on exist contact
     const isExist = contacts.some(user => {
@@ -45,62 +43,42 @@ class App extends Component {
     };
 
     // Change state
-    this.setState(prevState => {
-      return { contacts: [...prevState.contacts, currentUser] };
-    });
+    setContact(prevState => [...prevState, currentUser]);
   };
 
   // Delete contact
-  handleDeleteContact = id => {
-    this.setState(prevState => {
-      const newContacts = prevState.contacts;
-      const pos = newContacts.findIndex(user => user.id === id);
-      if (pos >= 0) {
-        newContacts.splice(pos, 1);
-        return { contacts: newContacts };
-      }
-    });
+  const handleDeleteContact = idToDel => {
+    setContact(prevContacts => prevContacts.filter(({ id }) => id !== idToDel));    
   };
 
   // On input filter
-  handleInputFilter = e => {
+  const handleInputFilter = e => {
     const newFilter = e.target.value;
-    this.setState({ filter: newFilter });
+    setFilter(newFilter);
   };
 
   // Filtering contacts by name
-  getFilteredContacts = filterName => {
-    const contacts = this.state.contacts;
+  const getFilteredContacts = filterName => {
     return contacts.filter(contact =>
       contact.name.toLowerCase().includes(filterName.toLowerCase())
     );
   };
 
-  render() {
-    // Name for filtering
-    const filterName = this.state.filter;
+  // Preparing contacts to render(filtered or all)
+  const contactsToShow =
+    filter.length > 0 ? getFilteredContacts(filter) : contacts;
 
-    // Preparing contacts to render(filtered or all)
-    const contactsToShow =
-      filterName.length > 0
-        ? this.getFilteredContacts(filterName)
-        : this.state.contacts;
-    return (
-      <Container>
-        <Section title="Phonebook">
-          <Phonebook onSubmit={this.handleAddContact} />
-        </Section>
+  return (
+    <Container>
+      <Section title="Phonebook">
+        <Phonebook onSubmit={handleAddContact} />
+      </Section>
 
-        <Section title="Contacts">
-          <Filter onInputFilter={this.handleInputFilter} />
-        </Section>
-        <Contacts
-          contacts={contactsToShow}
-          onDeleteUser={this.handleDeleteContact}
-        />
-      </Container>
-    );
-  }
-}
+      <Section title="Contacts">
+        <Filter onInputFilter={handleInputFilter} />
+      </Section>
 
-export { App };
+      <Contacts contacts={contactsToShow} onDeleteUser={handleDeleteContact} />
+    </Container>
+  );
+};
