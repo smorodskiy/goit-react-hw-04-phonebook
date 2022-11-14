@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 import { Section, Phonebook, Contacts, Filter } from 'components';
@@ -11,14 +11,39 @@ import { nanoid } from 'nanoid';
 export const App = () => {
   // Global states
 
-  const [contacts, setContact] = useState([
-    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-  ]);
+  const [contacts, setContacts] = useState([]);
 
   const [filter, setFilter] = useState('');
+
+  // On mount
+  useEffect(() => {
+    try {
+      const contacts = localStorage.getItem('contacts');
+      const contactsParsed = JSON.parse(contacts);
+
+      if (contactsParsed !== null && contactsParsed.length > 0) {
+        setContacts(contactsParsed);
+      } else {
+        setContacts([
+          { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+          { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+          { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+          { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+        ]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  // On update "contacts" state
+  useEffect(() => {
+    try {
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+    } catch (error) {
+      console.log(error);
+    }
+  }, [contacts]);
 
   // Add contacts
   const handleAddContact = (e, name, number) => {
@@ -43,12 +68,14 @@ export const App = () => {
     };
 
     // Change state
-    setContact(prevState => [...prevState, currentUser]);
+    setContacts(prevState => [...prevState, currentUser]);
   };
 
   // Delete contact
   const handleDeleteContact = idToDel => {
-    setContact(prevContacts => prevContacts.filter(({ id }) => id !== idToDel));    
+    setContacts(prevContacts =>
+      prevContacts.filter(({ id }) => id !== idToDel)
+    );
   };
 
   // On input filter
